@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wizzy `/lore`** (`heavymetal/wizzy/lore.py`, `wizzy lore`): checks a token's marketing claims against chain facts (RugCheck LP lock and creator, mint account authorities and Token-2022 fees, creator balance, holder concentration, pump.fun graduation, pair age) with TRUE / FALSE / UNPROVEN verdicts and receipts in the scroll. Custom claim text is mapped by keyword rules and treated as untrusted. The writer's guard fallback now uses the feature's own template.
 - **Wizzy** (`wizzy` command, `heavymetal/wizzy/`, `uv sync --extra wizzy`): a public, read-only wizard for Telegram, X and the web. Facts-only readings with an output guard (numbers, addresses, links and tickers must come from the facts), rug-scrying omens, wallet tarot, apprentice lessons with quiz ranks, prophecies with frozen baselines and a Sunday scoreboard, spellbook owl alerts, scroll pages with OG images and charts, x402 paywalled full scrolls, Inner Circle via Telegram Stars or Solana Pay, and familiar perks. Never loads the wallet; `tests/test_wizzy_isolation.py` enforces it. See `docs/WIZZY.md`.
 - `build_reader_env()`: a keyless, mainnet-only env for read-only services; `heavymetal/worker.py` `BackgroundWorker` shared by the scanner and Wizzy; `holdings` and `summarize_tx` moved to `heavymetal/solana/` (re-exported from the tools).
 - Apprentice lessons in `heavymetal/wiki/lessons/` are searchable by the agent's `wiki_search` too.

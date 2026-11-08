@@ -13,6 +13,7 @@ wizzy migrate                         # creates ~/.heavymetal/wizzy.db
 wizzy read BONK                       # a reading in the terminal (the bear waits while it works)
 wizzy read <mint | pump.fun link | dexscreener link | wallet>
 wizzy tarot <wallet>                  # three cards for a wallet
+wizzy lore <ticker|mint> ["claim" ...] # check a token's claims against the chain
 wizzy prophecy --dry-run              # candidate prophecy claims from live Trenches data
 wizzy score --dry-run                 # this week's prophecy scoreboard
 wizzy tg --polling                    # Telegram bot, local
@@ -54,6 +55,11 @@ receives payments; its key never lives on the server), `x402_network` (devnet by
   Readings suggest the lesson that matches what they found.
 - **Wallet tarot** (`/tarot <wallet>`): past, present and future cards picked by fixed rules from trade history and
   holdings; stable for a wallet for a UTC day.
+- **Lore vs chain** (`/lore <ticker|CA>`, `/lore <CA> "claim text"`): checks common claims (LP locked, mint/freeze
+  revoked, dev holds 0%, fair launch, holders distributed, no tax, graduated, age) against chain facts and marks each
+  TRUE, FALSE or UNPROVEN with its sources. Free text maps to a fixed claim type with keyword rules (no model);
+  unmapped and off-chain claims (CTO, audits, partnerships) are UNPROVEN. Custom claims: 1 per reading free, 5 Inner
+  Circle. Thresholds live in `heavymetal/wizzy/lore.py` (LP within 5 points, top 10 under 30%, dev at most 0.01%).
 - **Prophecies**: 2-4 a day at `prophecy_hours_utc`, each a measurable claim made in code with a frozen baseline
   (narrative volume share, top-5 ticker hold, Fear & Greed direction, smallcap volume direction). Graded only after
   maturing, with data stamped after the claim; missing data voids. A **Sunday scoreboard** names the wrong calls.

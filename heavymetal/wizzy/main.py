@@ -86,6 +86,26 @@ async def _tarot(a) -> int:
         await ctx.aclose()
 
 
+async def _lore(a) -> int:
+    from heavymetal.wizzy import cli
+    from heavymetal.wizzy.ctx import open_ctx
+    from heavymetal.wizzy.lore import lore_read
+    from heavymetal.wizzy.resolve import ResolveError
+
+    ctx = open_ctx()
+    args = a.subject + "".join(f' "{c}"' for c in a.claims)
+    try:
+        with cli.waiting("unrolling the oldest scroll"):
+            scroll, url, cached, _dropped = await lore_read(ctx, args, user_id=None, surface="cli")
+        cli.show_scroll(scroll, url, cached)
+        return 0
+    except ResolveError as e:
+        cli.console.print(f"[yellow]The mists hide that: {e}[/yellow]")
+        return 1
+    finally:
+        await ctx.aclose()
+
+
 async def _prophecy(a) -> int:
     from heavymetal.wizzy.ctx import open_ctx
     from heavymetal.wizzy.prophecy import service
@@ -163,6 +183,9 @@ def run(argv: list[str] | None = None) -> None:
     tp.add_argument("--set-webhook", action="store_true", help="register <base_url>/tg/webhook with Telegram")
     tap = sub.add_parser("tarot", help="three tarot cards for a wallet")
     tap.add_argument("wallet")
+    lp = sub.add_parser("lore", help="check a token's claims against the chain")
+    lp.add_argument("subject", help="ticker or mint")
+    lp.add_argument("claims", nargs="*", help='claim texts, e.g. "LP burned" "dev holds 0%%"')
     pp = sub.add_parser("prophecy", help="make one prophecy now (--dry-run: print candidate claims only)")
     pp.add_argument("--dry-run", action="store_true")
     sp = sub.add_parser("score", help="resolve matured prophecies and print the scoreboard")
@@ -176,6 +199,7 @@ def run(argv: list[str] | None = None) -> None:
         "tg": _tg,
         "serve": _serve,
         "tarot": _tarot,
+        "lore": _lore,
         "prophecy": _prophecy,
         "score": _score,
         "status": _status,

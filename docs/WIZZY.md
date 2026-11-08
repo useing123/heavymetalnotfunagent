@@ -49,6 +49,16 @@ receives payments; its key never lives on the server), `x402_network` (devnet by
   RugCheck, the mint account, OHLCV and DefiLlama; a 2-5 sentence reading plus a full scroll at `/s/<slug>`.
 - **Rug scrying** (`/scry <CA>`): a quick omen, no model call. cursed (fake, active freeze authority, critical
   RugCheck), hexed (farmed volume), murky, blessed. Established tokens such as USDC are never called cursed.
+- **Dev's past coins** (`/dev <ticker|CA|link>`, also "who is the dev of $X"): the creator from the RugCheck
+  report cross-checked with the create tx signer (for pump.fun, LaunchLab, Meteora DBC and Moonshot the
+  instruction's user account, never a relayer or factory; disagreement means unresolved), its other tokens from the
+  last 180 days (Helius parsed `CREATE` history, max 200, cached per creator in `dev_profiles` and refreshed
+  incrementally), each classified in code as graduated / rugged / dead / alive / unknown (`wizzy/dev.py`), SOL
+  funding in the 72 h before deploy (1 hop, 2 for the Inner Circle, stopping at a static CEX/bridge/program label
+  list; wording is "funded by", never identity) and a sigil: fresh hand, clean hands, mixed sigils, serial summoner.
+  `/read` and `/scry` show a one-line dev summary. Dev history only lowers an omen and only for a cross-checked
+  creator: a serial summoner (3+ rugs and a 50%+ rug share of readable launches in 90 days) pulls it to cursed, mixed
+  sigils cap it at murky; established mints and program-authority mints are exempt. Needs the Helius key.
 - **Apprentice mode** (`/learn`, `/lesson <topic>`, `/rank`): ten lessons with quizzes in
   `heavymetal/wiki/lessons/`. Ranks Apprentice, Adept, Conjurer, Sorcerer, Archmage come only from passed quizzes.
   Readings suggest the lesson that matches what they found.

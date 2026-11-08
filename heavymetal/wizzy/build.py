@@ -9,6 +9,7 @@ import time
 from heavymetal.signals.audit import HARD_PASS, audit_mint
 from heavymetal.solana.fake_check import normalize_ticker
 from heavymetal.solana.holdings import holdings
+from heavymetal.wizzy.dev import dev_facts
 from heavymetal.wizzy.facts import (
     Authorities,
     Facts,
@@ -23,7 +24,7 @@ from heavymetal.wizzy.facts import (
     TokenFacts,
     WalletFacts,
 )
-from heavymetal.wizzy.omen import ESTABLISHED, omen_for
+from heavymetal.wizzy.omen import ESTABLISHED, apply_dev, omen_for
 from heavymetal.wizzy.resolve import Subject as Resolved
 
 URL_RE = re.compile(r"(https?://\S+|www\.\S+|\b[\w-]+\.(?:com|xyz|io|fun|net|org|app|gg|co|ai|me|so|lol|vip)\b)", re.I)
@@ -110,7 +111,7 @@ async def _protocol(env, mint: str) -> Protocol | None:
     return Protocol(name=p["name"], slug=p["slug"], category=p.get("category"), tvlUsd=p.get("tvl"), fees24hUsd=fees)
 
 
-async def build_token_facts(env, subject: Resolved, light: bool = False) -> Facts:
+async def build_token_facts(env, subject: Resolved, light: bool = False, dev_cache=None) -> Facts:
     mint = subject.key
     now = time.time()
     audit, chain, report, jup, proto = await asyncio.gather(
@@ -214,6 +215,16 @@ async def build_token_facts(env, subject: Resolved, light: bool = False) -> Fact
         protocol=protocol,
     )
     token.omen = omen_for(mint, key, risk if key in HARD_PASS else strengths)
+    dev = None
+    if mint not in ESTABLISHED:  # majors and stablecoins: dev history doesn't apply
+        got = await _safe(dev_facts(env, mint, report=report if _ok(report) else None, light=True, cache=dev_cache))
+        if _ok(got):
+            dev = got.model_copy(update={"pastCoins": []})  # counts only in /read; the list lives in /dev
+            sources += got.sources
+            unknowns += [u for u in got.unknowns if u not in unknowns]
+            token.omen = apply_dev(token.omen, mint, got, token.authorities.mint)
+        else:
+            unknowns.append("dev history")
     untrusted = {"name": clean_untrusted(m.get("name") or subject.name), "symbol": clean_untrusted(m.get("symbol"))}
     return Facts(
         asOf=now,
@@ -224,6 +235,7 @@ async def build_token_facts(env, subject: Resolved, light: bool = False) -> Fact
         unknowns=unknowns,
         riskFlags=risk,
         untrusted={k: v for k, v in untrusted.items() if v},
+        dev=dev,
         extra={
             "chart": {"ts": [c["ts"] for c in candles], "close": [c["close"] for c in candles], "source": ohlcv.source}
         }
@@ -271,7 +283,7 @@ async def build_wallet_facts(env, subject: Resolved, top: int = 8) -> Facts:
     )
 
 
-async def build_facts(env, subject: Resolved, light: bool = False) -> Facts:
+async def build_facts(env, subject: Resolved, light: bool = False, dev_cache=None) -> Facts:
     if subject.kind == "wallet":
         return await build_wallet_facts(env, subject)
-    return await build_token_facts(env, subject, light=light)
+    return await build_token_facts(env, subject, light=light, dev_cache=dev_cache)

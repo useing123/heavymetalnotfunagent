@@ -81,6 +81,32 @@ class Helius:
         txs = r.json() if isinstance(r.json(), list) else []
         return self.cache.put(ck, [summarize_helius_tx(t, address) for t in txs])
 
+    async def history(
+        self, address: str, *, tx_type: str | None = None, before: str | None = None, limit: int = 100
+    ) -> list[dict]:
+        """One page of an address's raw parsed history (Enhanced Transactions), newest first."""
+        key = self.key_fn()
+        if not key:
+            raise MissingKey("helius")
+        ck = f"hist:{address}:{tx_type}:{before}:{limit}"
+        hit = self.cache.get(ck)
+        if hit is not None:
+            return hit
+        params = {"api-key": key, "limit": min(limit, 100)}
+        if tx_type:
+            params["type"] = tx_type
+        if before:
+            params["before"] = before
+        await self.limit.wait()
+        r = await self.http.get(f"{BASE}/addresses/{address}/transactions", params=params, timeout=30)
+        if r.status_code in (401, 403):
+            raise ConnectorError(f"helius rejected the key ({r.status_code})")
+        if r.status_code == 404:  # "no events within the search period": treat as the end of history
+            return self.cache.put(ck, [])
+        r.raise_for_status()
+        data = r.json()
+        return self.cache.put(ck, data if isinstance(data, list) else [])
+
 
 def summarize_helius_tx(t: dict, owner: str) -> dict:
     deltas: dict[str, float] = {}

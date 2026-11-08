@@ -108,6 +108,8 @@ def _template_token(f: Facts) -> tuple[str, str, str]:
     if t.liquidityUsd is not None:
         parts.append(f"Liquidity {usd(t.liquidityUsd)}, FDV {usd(t.fdvUsd)}, 24h {pct(t.priceChange24hPct)}.")
     parts.append(", ".join(auth).capitalize() + ".")
+    if f.dev is not None and f.dev.line:
+        parts.append(f.dev.line)
     reading = " ".join(parts)
     title = f"{sym}: {kind}"
     lines = [
@@ -126,6 +128,7 @@ def _template_token(f: Facts) -> tuple[str, str, str]:
         f"- Top 10 holders: {'?' if t.holders.top10Pct is None else str(t.holders.top10Pct) + '%'}",
         f"- Holders: {num(t.holders.countApprox) if t.holders.countApprox is not None else '?'}",
         f"- LP locked: {'?' if t.lpLockedPct is None else str(t.lpLockedPct) + '%'}",
+        *(["## The hand behind it", f"- {f.dev.line}", "- Full history: /dev"] if f.dev and f.dev.line else []),
         "## Risks",
         *([f"- {r}" for r in f.riskFlags] or ["- The bones found none in the code checks."]),
         "## Unknowns",
@@ -220,7 +223,7 @@ async def write(
                 cost_usd=cost,
                 model=model,
             )
-    r, t, b = template(facts)
+    r, t, b = template_fn(facts)  # the caller's template (tarot, /dev), not always the token one
     return Written(
         with_footer(r),
         t,

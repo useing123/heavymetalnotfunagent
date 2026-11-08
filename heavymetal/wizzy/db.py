@@ -76,6 +76,9 @@ CREATE TABLE IF NOT EXISTS perks (user_id INTEGER NOT NULL, flag TEXT NOT NULL, 
   PRIMARY KEY (user_id, flag));
 CREATE TABLE IF NOT EXISTS narrative_tags (mint TEXT PRIMARY KEY, narrative TEXT NOT NULL, method TEXT NOT NULL,
   tagged_at REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS dev_profiles (wallet TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS dev_liquidity (mint TEXT NOT NULL, ts REAL NOT NULL, liq REAL NOT NULL,
+  PRIMARY KEY (mint, ts));
 CREATE TABLE IF NOT EXISTS solana_pay_orders (
   reference TEXT PRIMARY KEY, user_id INTEGER NOT NULL, amount REAL NOT NULL, status TEXT NOT NULL DEFAULT 'open',
   tx_sig TEXT, created_at REAL NOT NULL);

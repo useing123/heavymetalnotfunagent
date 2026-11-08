@@ -67,6 +67,8 @@ async def scry(ctx, text: str) -> Reply:
     sym = f"${t.symbol}" if t.symbol else subject.key[:6] + "…"
     lines = [f"{OMEN_GLYPH[kind]} {sym}: {OMEN_LINE[kind]}"]
     lines += [f"• {r}" for r in (t.omen.reasons if t.omen else [])[:3]]
+    if facts.dev is not None and facts.dev.line:
+        lines.append(facts.dev.line)
     if facts.unknowns:
         lines.append(f"The mist hides: {', '.join(facts.unknowns[:3])}.")
     lines.append(FOOTER)

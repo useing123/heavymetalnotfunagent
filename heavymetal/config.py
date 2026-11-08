@@ -130,6 +130,7 @@ class WizzyConfig:
     inner_readings_per_hour: int = 30
     dedupe_ca_minutes: int = 10
     facts_ttl_s: int = 600
+    dev_ttl_s: int = 6 * 3600  # per-creator history cache (dev_profiles)
     max_concurrent_readings: int = 4
     scroll_price_usdc: float = 0.25
     x402_network: str = (

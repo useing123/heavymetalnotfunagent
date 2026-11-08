@@ -117,6 +117,61 @@ class NarrativeFacts(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+DevOutcome = Literal["graduated", "rugged", "dead", "alive", "unknown"]
+Sigil = Literal["fresh hand", "clean hands", "mixed sigils", "serial summoner"]
+
+
+class PastCoin(BaseModel):
+    """One earlier token created by the same wallet, classified in code (dev.classify)."""
+
+    mint: str
+    symbol: str | None = None
+    createdAt: float | None = None
+    ageDays: float | None = None
+    peakLiquidityUsd: float | None = None  # highest liquidity Wizzy has observed for this mint
+    liquidityUsd: float | None = None
+    volume24hUsd: float | None = None
+    dex: str | None = None
+    outcome: DevOutcome = "unknown"
+    why: str = ""
+    link: str = ""
+    source: str = ""
+
+
+class Funder(BaseModel):
+    """A wallet that sent SOL to the creator shortly before a deploy. "funded by", never identity."""
+
+    wallet: str
+    solIn: float
+    hop: int = 1
+    label: str | None = None  # CEX / bridge / program label where the trace stopped
+    fundedRugs: int = 0  # earlier rugged deploys of this creator that the same wallet also funded
+
+
+class DevFacts(BaseModel):
+    creator: str | None = None
+    status: Literal["resolved", "single_source", "unresolved", "unavailable"] = "unavailable"
+    creatorSources: list[str] = Field(default_factory=list)
+    launchpad: str | None = None
+    createdAt: float | None = None
+    creatorExited: bool | None = None  # creator no longer holds the token (e.g. a community takeover)
+    windowDays: int = 180
+    pastCount: int = 0
+    counts: dict[str, int] = Field(default_factory=dict)
+    rugs90d: int = 0
+    known90d: int = 0
+    rugShare90d: float | None = None
+    sigil: Sigil | None = None
+    line: str = ""  # code-written one-line summary used by /read and /scry
+    funders: list[Funder] = Field(default_factory=list)
+    fundersLinkedRugs: int = 0
+    pastCoins: list[PastCoin] = Field(default_factory=list)
+    truncated: bool = False
+    asOf: float = 0.0
+    sources: list[Source] = Field(default_factory=list)
+    unknowns: list[str] = Field(default_factory=list)
+
+
 class Facts(BaseModel):
     asOf: float
     subject: Subject
@@ -124,6 +179,7 @@ class Facts(BaseModel):
     token: TokenFacts | None = None
     wallet: WalletFacts | None = None
     narrative: NarrativeFacts | None = None
+    dev: DevFacts | None = None
     extra: dict = Field(default_factory=dict)  # feature-specific computed facts (tarot cards, prophecy claims)
     strengths: list[str] = Field(default_factory=list)  # positive code findings
     unknowns: list[str] = Field(default_factory=list)

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from heavymetal.wizzy import scrolls
 from heavymetal.wizzy.build import build_facts
 from heavymetal.wizzy.charts import price_chart_url
+from heavymetal.wizzy.dev import DevCache
 from heavymetal.wizzy.facts import Facts
 from heavymetal.wizzy.resolve import ResolveError, Subject, resolve_subject
 from heavymetal.wizzy.writer import Written, write
@@ -54,7 +55,7 @@ async def get_facts(ctx, subject: Subject, light: bool = False) -> tuple[int, Fa
     sid = ctx.wdb.subject(subject.kind, subject.key, subject.symbol)
     facts = cached_facts(ctx, sid)
     if facts is None:
-        facts = await build_facts(ctx.env, subject, light=light)
+        facts = await build_facts(ctx.env, subject, light=light, dev_cache=DevCache(ctx.wdb, ctx.wcfg.dev_ttl_s))
         store_facts(ctx, sid, facts)
     return sid, facts
 

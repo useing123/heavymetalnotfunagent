@@ -10,6 +10,7 @@ FEATURE_MODULES: list[str] = [
     "heavymetal.wizzy.tarot",
     "heavymetal.wizzy.prophecy.service",
     "heavymetal.wizzy.spellbook.surface",
+    "heavymetal.wizzy.dev_reading",
 ]  # each exposes register()
 _done = False
 

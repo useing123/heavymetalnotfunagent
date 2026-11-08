@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Wizzy **Dev's past coins**: `/dev <ticker|CA|link>` plus a dev line in `/read` and `/scry`. Creator cross-check (RugCheck vs the create tx signer), the creator's earlier tokens from Helius parsed history, code-only outcome rules, a funding trace that stops at labeled wallets, sigils, and omen lowering for serial summoners (`heavymetal/wizzy/dev.py`, `dev_reading.py`, `Helius.history`, `dev_profiles`/`dev_liquidity` tables).
 - **Wizzy** (`wizzy` command, `heavymetal/wizzy/`, `uv sync --extra wizzy`): a public, read-only wizard for Telegram, X and the web. Facts-only readings with an output guard (numbers, addresses, links and tickers must come from the facts), rug-scrying omens, wallet tarot, apprentice lessons with quiz ranks, prophecies with frozen baselines and a Sunday scoreboard, spellbook owl alerts, scroll pages with OG images and charts, x402 paywalled full scrolls, Inner Circle via Telegram Stars or Solana Pay, and familiar perks. Never loads the wallet; `tests/test_wizzy_isolation.py` enforces it. See `docs/WIZZY.md`.
 - `build_reader_env()`: a keyless, mainnet-only env for read-only services; `heavymetal/worker.py` `BackgroundWorker` shared by the scanner and Wizzy; `holdings` and `summarize_tx` moved to `heavymetal/solana/` (re-exported from the tools).
 - Apprentice lessons in `heavymetal/wiki/lessons/` are searchable by the agent's `wiki_search` too.
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The reviewer gets the USD value of every buy and `pct_of_holdings` for sells. A buy worth more than 120% of the user's stated dollar amount is blocked in code (`CORRECT_PARAMS`).
 
 ### Fixed
+- Wizzy writer: when the guard rejects every retry it now falls back to the caller's template (tarot, /dev) instead of always the token template.
 - Claude cost estimates used outdated prices (Opus 5.5 was billed at $15/$75 per million tokens instead of $4/$20; Haiku 5.5 was missing).
 - Streamed replies no longer repeat earlier text when the agent writes, runs a tool, then writes again.
 - Token audit card crashed (and was silently skipped) when the pair had no dex id or 1h volume.

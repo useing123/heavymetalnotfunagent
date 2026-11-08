@@ -40,3 +40,24 @@ def omen_for(mint: str, verdict_key: str | None, reasons: list[str] | None = Non
         if verdict_key == "HONEYPOT":
             reasons = ["An established token: its issuer keeps admin authorities by design.", *reasons[1:3]]
     return Omen(kind=kind, reasons=reasons)
+
+
+RANK = {"cursed": 0, "hexed": 1, "murky": 2, "blessed": 3}
+
+
+def apply_dev(omen: Omen, mint: str, dev, mint_authority: str | None = None) -> Omen:
+    """Dev history can only lower an omen, never raise it.
+
+    Only a cross-checked creator (status "resolved") counts. A serial summoner pulls the omen to cursed with a
+    reason; mixed sigils cap it at murky. Established mints and mints whose authority is a known program are exempt.
+    """
+    from heavymetal.wizzy.dev import PROGRAM_AUTHORITIES
+
+    if dev is None or dev.status != "resolved" or mint in ESTABLISHED or mint_authority in PROGRAM_AUTHORITIES:
+        return omen
+    if dev.sigil == "serial summoner":
+        reason = f"Dev history: serial summoner ({dev.rugs90d} of {dev.known90d} readable launches in 90 days rugged)"
+        return Omen(kind="cursed", reasons=[reason, *omen.reasons][:3])
+    if dev.sigil == "mixed sigils" and RANK[omen.kind] > RANK["murky"]:
+        return Omen(kind="murky", reasons=["Dev history: mixed sigils (earlier rugs on record)", *omen.reasons][:3])
+    return omen

@@ -8,7 +8,19 @@ from dataclasses import dataclass
 from heavymetal.solana.resolver import BASE58_RE
 from heavymetal.wizzy.resolve import CASHTAG_RE, TICKER_RE
 
-INTENTS = ("token", "wallet", "tarot", "scry", "narrative", "lesson", "watch", "chitchat", "trade_request", "spam")
+INTENTS = (
+    "token",
+    "wallet",
+    "tarot",
+    "scry",
+    "dev",
+    "narrative",
+    "lesson",
+    "watch",
+    "chitchat",
+    "trade_request",
+    "spam",
+)
 TRADE_RE = re.compile(
     r"\b(buy|sell|ape|swap|long|short|snipe|dump|market buy|limit order|send me|transfer)\b.*"
     r"(\$\w+|\b[1-9A-HJ-NP-Za-km-z]{32,44}\b|\bsol\b|\busdc\b|\btoken\b|\bit\b|\bthis\b)",
@@ -24,6 +36,7 @@ LINK_RE = re.compile(
 )
 TAROT_RE = re.compile(r"\b(tarot|cards?|fortune|read my (bag|wallet))\b", re.I)
 SCRY_RE = re.compile(r"\b(scry|omen|rug ?check|is (it|this) (safe|a rug))\b", re.I)
+DEV_RE = re.compile(r"\b(dev|deployer|creator)\b", re.I)
 LESSON_RE = re.compile(r"\b(learn|lesson|teach|explain|what (is|are|does)|how does)\b", re.I)
 WATCH_RE = re.compile(r"\b(watch|alert|warn me|notify|tell me (when|if|about)|ping me)\b", re.I)
 GREET_RE = re.compile(r"^\s*(gm|gn|hi|hello|hey|yo|sup|thanks?|ty|wagmi|lol|❤️|🙏)\W*$", re.I)
@@ -71,6 +84,8 @@ def rules(text: str) -> Intent | None:
         return Intent("tarot", t)
     if SCRY_RE.search(t) and (has_addr or has_cashtag):
         return Intent("scry", t)
+    if DEV_RE.search(t) and (has_addr or has_cashtag or LINK_RE.search(t)):
+        return Intent("dev", t)
     if has_addr or has_cashtag or LINK_RE.search(t):
         return Intent("token", t)  # the resolver decides token vs wallet
     if GREET_RE.match(t):

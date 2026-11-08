@@ -100,6 +100,14 @@ def _number_ok(v: float, decimals: int, suffix: str, allowed: list[float]) -> bo
     return False
 
 
+PEOPLE_DENY_RE = re.compile(r"\b(scam(?:mer)?s?|fraud(?:ster)?s?|rugg(?:er|ers)|grifters?|liars?|criminals?)\b", re.I)
+
+
+def check_people_words(text: str) -> list[str]:
+    """Evidence-only vocabulary for readings about people (/oracle): no accusations, whatever the numbers say."""
+    return [f"word not allowed about people: {m.group(0)}" for m in PEOPLE_DENY_RE.finditer(text or "")]
+
+
 def check(text: str, allowed: Allowed) -> list[str]:
     """Problems found in text; empty means it passes."""
     problems: list[str] = []

@@ -59,6 +59,18 @@ receives payments; its key never lives on the server), `x402_network` (devnet by
   maturing, with data stamped after the claim; missing data voids. A **Sunday scoreboard** names the wrong calls.
 - **Spellbook** (`/watch`, `/watches`, `/unwatch`): owl alerts in Telegram when top holders move, liquidity drops,
   an authority changes or a wallet moves. Unlock alerts wait for a vesting data source (`spellbook/providers.py`).
+- **Oracle** (`/oracle @handle`, `/ledger`): a caller's track record graded in code (v1: witnessed calls only).
+  A call is a CA posted by the author in a post that mentions Wizzy (handle, mint, post time, post id); post text is
+  never stored. Cashtag-only posts are ambiguous and not counted; questions and warnings are excluded by fixed
+  rules. Baseline: the live pair price frozen when Wizzy saw the post, else the hourly candle open at post time
+  (GeckoTerminal). Graded at 24h, 7d and 30d on candles stamped after the post; hit = above the baseline; a drained
+  pool is graded at its last traded price; no market data voids. Stats per horizon (hit rate, median, worst), rugs
+  (-90% or worse, or quiet after a 50% fall) and a sigil by fixed thresholds on 7d: *unread stars* (under 5 graded),
+  *calls held* (60%+ and median above 0), *calls faded* (25% or less, or median -50% or worse), *mixed sigils*.
+  The scroll lists receipts (post link, candle source). Free sees 7d, Inner Circle 24h/7d/30d. `/ledger` ranks
+  handles by 7d median over witnessed calls (`oracle_ledger_min_calls`, opt-out via `oracle_ledger_optout`). An X
+  timeline collector exists behind `oracle_x_collector` (off; budgeted by `oracle_x_daily_budget_usd`).
+  Follow-ups: `/watch @handle`, weekly Ledger auto-post, dispute route, cashtag resolution as of post time.
 - **Inner Circle** (`/inner`): Telegram Stars subscription in the bot, Solana Pay USDC on the web. Free full scrolls,
   higher limits, more watches and a **familiar** (`/familiar`): owl +5 watches, cat early prophecies, raven +5
   readings/hour, toad a private weekly digest. Familiars are off-chain badges.

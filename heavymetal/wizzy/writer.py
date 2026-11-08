@@ -190,6 +190,7 @@ async def write(
     instructions: str = "",
     extra_urls: list[str] | None = None,
     template_fn=None,
+    extra_check=None,
 ) -> Written:
     """Write a reading for facts. llm=None (no key, over budget) uses the code template."""
     allowed = guard.allowed_from(facts.for_writer(), extra_urls)
@@ -210,6 +211,8 @@ async def write(
         model = resp.model
         texts = [data.get("reading", ""), data.get("scrollTitle", ""), data.get("scrollBodyMarkdown", "")]
         problems = [p for txt in texts for p in guard.check(txt, allowed)]
+        if extra_check is not None:
+            problems += [p for txt in texts for p in extra_check(txt)]
         if not problems and all(texts):
             return Written(
                 with_footer(texts[0]),
@@ -220,7 +223,7 @@ async def write(
                 cost_usd=cost,
                 model=model,
             )
-    r, t, b = template(facts)
+    r, t, b = template_fn(facts)
     return Written(
         with_footer(r),
         t,

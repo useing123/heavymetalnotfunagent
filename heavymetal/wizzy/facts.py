@@ -20,7 +20,7 @@ class Source(BaseModel):
 
 
 class Subject(BaseModel):
-    kind: Literal["token", "wallet", "narrative"]
+    kind: Literal["token", "wallet", "narrative", "kol"]
     mint: str | None = None
     symbol: str | None = None
     wallet: str | None = None
@@ -117,6 +117,51 @@ class NarrativeFacts(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+class KolHorizon(BaseModel):
+    """Graded calls at one horizon. Percents are rounded to 1 decimal in code."""
+
+    horizonH: int
+    graded: int = 0
+    hits: int = 0
+    voids: int = 0
+    pending: int = 0
+    hitRatePct: float | None = None
+    medianReturnPct: float | None = None
+    worstReturnPct: float | None = None
+    worstMint: str | None = None
+    worstPostUrl: str | None = None
+
+
+class KolReceipt(BaseModel):
+    postUrl: str
+    postedAt: float
+    mint: str | None = None
+    source: Literal["witnessed", "backfilled"]
+    status: str
+    baselinePriceUsd: float | None = None
+    baselineSource: str | None = None
+    priceSourceUrl: str | None = None
+    returnsPct: dict[str, float | None] = Field(default_factory=dict)  # "24h" -> pct, None = void or pending
+    rug: bool = False
+    deleted: bool = False
+
+
+class KolFacts(BaseModel):
+    handle: str
+    windowDays: int
+    calls: int = 0  # counted calls (CA in an original post or reply, not excluded)
+    witnessed: int = 0
+    backfilled: int = 0
+    ambiguous: int = 0  # cashtag-only posts: not resolved, not counted
+    excluded: int = 0  # questions, warnings, non-token addresses
+    deleted: int = 0
+    rugs: int = 0  # calls that fell 90% or more, or whose pool drained
+    horizons: list[KolHorizon] = Field(default_factory=list)
+    sigil: str
+    sigilRule: str
+    receipts: list[KolReceipt] = Field(default_factory=list)
+
+
 class Facts(BaseModel):
     asOf: float
     subject: Subject
@@ -124,6 +169,7 @@ class Facts(BaseModel):
     token: TokenFacts | None = None
     wallet: WalletFacts | None = None
     narrative: NarrativeFacts | None = None
+    kol: KolFacts | None = None
     extra: dict = Field(default_factory=dict)  # feature-specific computed facts (tarot cards, prophecy claims)
     strengths: list[str] = Field(default_factory=list)  # positive code findings
     unknowns: list[str] = Field(default_factory=list)
@@ -134,4 +180,6 @@ class Facts(BaseModel):
         """JSON-able dict for the writer prompt (drops empty fields to save tokens)."""
         d = self.model_dump(exclude_none=True, exclude_defaults=False)
         d.get("extra", {}).pop("chart", None)  # raw candles are for charts, not for prose
+        if "kol" in d:
+            d["kol"].pop("receipts", None)  # per-call receipts are rendered in code on the scroll
         return d

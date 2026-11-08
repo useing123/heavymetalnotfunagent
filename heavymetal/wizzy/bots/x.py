@@ -40,14 +40,32 @@ class XClient:
         )
 
     async def mentions(self, since_id: str | None) -> list[dict]:
-        params = {"tweet_fields": ["conversation_id", "author_id", "created_at"], "max_results": 50}
+        params = {
+            "tweet_fields": ["conversation_id", "author_id", "created_at", "referenced_tweets"],
+            "expansions": ["author_id"],
+            "user_fields": ["username"],
+            "max_results": 50,
+        }
         if since_id:
             params["since_id"] = since_id
         resp = await self.c.get_users_mentions(self.user_id, **params)
-        return [
-            {"id": str(t.id), "text": t.text, "author_id": str(t.author_id), "conversation_id": str(t.conversation_id)}
-            for t in resp.data or []
-        ]
+        users = {str(u.id): u.username for u in (getattr(resp, "includes", None) or {}).get("users", [])}
+        out = []
+        for t in resp.data or []:
+            refs = {r.type for r in (getattr(t, "referenced_tweets", None) or [])}
+            created = getattr(t, "created_at", None)
+            out.append(
+                {
+                    "id": str(t.id),
+                    "text": t.text,
+                    "author_id": str(t.author_id),
+                    "conversation_id": str(t.conversation_id),
+                    "username": users.get(str(t.author_id)),
+                    "created_at": created.timestamp() if created else None,
+                    "quote": "quoted" in refs or "retweeted" in refs,
+                }
+            )
+        return out
 
     async def reply(self, text: str, in_reply_to: str) -> str:
         resp = await self.c.create_tweet(text=text, in_reply_to_tweet_id=in_reply_to)
@@ -71,8 +89,13 @@ def x_ready(keys) -> bool:
     )
 
 
+ORACLE_ARG_RE = re.compile(r"\b(oracle\s+)@(\w{1,15})", re.I)
+
+
 def strip_mentions(text: str) -> str:
-    return MENTION_RE.sub(" ", text or "").strip()
+    """Drop @mentions, except the handle after "oracle" (that one is the subject of the request)."""
+    text = ORACLE_ARG_RE.sub(lambda m: m.group(1) + m.group(2), text or "")
+    return MENTION_RE.sub(" ", text).strip()
 
 
 def _visible_len(text: str) -> int:
@@ -109,6 +132,12 @@ async def poll_once(ctx, client) -> int:
     record_cost(ctx.wdb, "mentions", COST_MENTIONS_READ * max(1, len(tweets)))
     if not tweets:
         return 0
+    from heavymetal.wizzy.oracle.service import record_mentions
+
+    try:
+        await record_mentions(ctx, [t for t in tweets if not t.get("quote")], client.user_id)
+    except Exception:  # noqa: BLE001 - recording calls must never block replies
+        pass
     queued = 0
     for t in sorted(tweets, key=lambda t: int(t["id"])):
         if t["author_id"] == str(client.user_id):

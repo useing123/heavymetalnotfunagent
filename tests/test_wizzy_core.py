@@ -38,7 +38,7 @@ def test_mainnet_config_ignores_devnet_active_node():
 
 def test_wizzy_db_schema_users_and_secrets(tmp_path):
     db = WizzyDB(tmp_path / "w.db")
-    assert db.meta("schema_version") == "1"
+    assert db.meta("schema_version") == "2"
     u = db.user(tg_id="42")
     assert db.user(tg_id="42")["id"] == u["id"]
     assert db.tier(u["id"]) == "free"

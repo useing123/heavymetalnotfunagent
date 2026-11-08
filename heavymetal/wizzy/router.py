@@ -8,7 +8,22 @@ from dataclasses import dataclass
 from heavymetal.solana.resolver import BASE58_RE
 from heavymetal.wizzy.resolve import CASHTAG_RE, TICKER_RE
 
-INTENTS = ("token", "wallet", "tarot", "scry", "narrative", "lesson", "watch", "chitchat", "trade_request", "spam")
+INTENTS = (
+    "token",
+    "wallet",
+    "tarot",
+    "scry",
+    "narrative",
+    "lesson",
+    "watch",
+    "oracle",
+    "ledger",
+    "chitchat",
+    "trade_request",
+    "spam",
+)
+ORACLE_RE = re.compile(r"^\s*/?oracle\s+@?([A-Za-z0-9_]{1,15})\b", re.I)
+LEDGER_RE = re.compile(r"^\s*/?ledger\s*$", re.I)
 TRADE_RE = re.compile(
     r"\b(buy|sell|ape|swap|long|short|snipe|dump|market buy|limit order|send me|transfer)\b.*"
     r"(\$\w+|\b[1-9A-HJ-NP-Za-km-z]{32,44}\b|\bsol\b|\busdc\b|\btoken\b|\bit\b|\bthis\b)",
@@ -63,6 +78,10 @@ def rules(text: str) -> Intent | None:
         return Intent("chitchat")
     has_addr = bool(BASE58_RE.search(t))
     has_cashtag = bool(CASHTAG_RE.search(t))
+    if m := ORACLE_RE.match(t):
+        return Intent("oracle", m.group(1))
+    if LEDGER_RE.match(t):
+        return Intent("ledger")
     if TRADE_RE.search(t) or FUNDS_RE.search(t):
         return Intent("trade_request", t)
     if WATCH_RE.search(t):

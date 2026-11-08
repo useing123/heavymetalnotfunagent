@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wizzy `/oracle @handle` and `/ledger`** (`heavymetal/wizzy/oracle/`): KOL track records from calls Wizzy witnessed in its mentions, graded in code at 24h/7d/30d against a frozen baseline (missing data voids), with a sigil, a guarded writer plus template, and a receipts scroll. New `kol_calls`/`kol_grades` tables (schema v2). Optional X timeline collector, off by default.
 - **Wizzy** (`wizzy` command, `heavymetal/wizzy/`, `uv sync --extra wizzy`): a public, read-only wizard for Telegram, X and the web. Facts-only readings with an output guard (numbers, addresses, links and tickers must come from the facts), rug-scrying omens, wallet tarot, apprentice lessons with quiz ranks, prophecies with frozen baselines and a Sunday scoreboard, spellbook owl alerts, scroll pages with OG images and charts, x402 paywalled full scrolls, Inner Circle via Telegram Stars or Solana Pay, and familiar perks. Never loads the wallet; `tests/test_wizzy_isolation.py` enforces it. See `docs/WIZZY.md`.
 - `build_reader_env()`: a keyless, mainnet-only env for read-only services; `heavymetal/worker.py` `BackgroundWorker` shared by the scanner and Wizzy; `holdings` and `summarize_tx` moved to `heavymetal/solana/` (re-exported from the tools).
 - Apprentice lessons in `heavymetal/wiki/lessons/` are searchable by the agent's `wiki_search` too.

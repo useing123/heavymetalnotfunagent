@@ -13,7 +13,7 @@ from pathlib import Path
 
 from heavymetal import paths
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # v2: kol_calls, kol_grades (/oracle)
 ADDED_COLUMNS = {"scrolls": {"meta": "TEXT"}}  # columns added after v1; ALTERed into older databases
 
 SCHEMA = """
@@ -79,6 +79,16 @@ CREATE TABLE IF NOT EXISTS narrative_tags (mint TEXT PRIMARY KEY, narrative TEXT
 CREATE TABLE IF NOT EXISTS solana_pay_orders (
   reference TEXT PRIMARY KEY, user_id INTEGER NOT NULL, amount REAL NOT NULL, status TEXT NOT NULL DEFAULT 'open',
   tx_sig TEXT, created_at REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS kol_calls (
+  id INTEGER PRIMARY KEY, handle TEXT NOT NULL, author_id TEXT, post_id TEXT NOT NULL, addr TEXT, mint TEXT,
+  ts REAL NOT NULL, seen_ts REAL NOT NULL, source TEXT NOT NULL, via TEXT NOT NULL, intent TEXT NOT NULL,
+  status TEXT NOT NULL, reason TEXT, deleted INTEGER NOT NULL DEFAULT 0, baseline_price REAL, baseline_liq REAL,
+  baseline_ts REAL, baseline_source TEXT, pool TEXT, created_at REAL NOT NULL, UNIQUE (post_id, addr));
+CREATE INDEX IF NOT EXISTS ix_kol_calls_handle ON kol_calls(handle, ts);
+CREATE TABLE IF NOT EXISTS kol_grades (
+  call_id INTEGER NOT NULL, horizon_h INTEGER NOT NULL, status TEXT NOT NULL, outcome TEXT, value_price REAL,
+  ret_pct REAL, drained INTEGER NOT NULL DEFAULT 0, value_ts REAL, source TEXT, reason TEXT, graded_at REAL NOT NULL,
+  PRIMARY KEY (call_id, horizon_h));
 """
 
 
@@ -96,7 +106,8 @@ class WizzyDB:
         self.conn.execute("PRAGMA foreign_keys=ON")
         self.conn.executescript(SCHEMA)
         self._add_missing_columns()
-        if self.meta("schema_version") is None:
+        # Tables are CREATE IF NOT EXISTS and columns are ALTERed in, so older databases migrate in place.
+        if int(self.meta("schema_version") or 0) < SCHEMA_VERSION:
             self.set_meta("schema_version", str(SCHEMA_VERSION))
         self.conn.commit()
 

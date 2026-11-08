@@ -151,6 +151,12 @@ class WizzyConfig:
     gecko_budget_per_min: int = 12  # share of GeckoTerminal's 20/min left for Wizzy
     admin_tg_chat: str = ""
     cookie_secret: str = ""  # signs paid-scroll cookies; generated on first run if empty
+    oracle_enabled: bool = True  # /oracle and /ledger over calls Wizzy witnessed
+    oracle_witness_mentions: bool = True  # record CA posts that mention Wizzy as witnessed calls by their author
+    oracle_x_collector: bool = False  # read KOL timelines through the X API (costs post reads); off by default
+    oracle_x_daily_budget_usd: float = 1.0  # cap on X reads spent by the collector per 24h
+    oracle_ledger_min_calls: int = 10  # graded 7d calls a handle needs to appear on the Ledger
+    oracle_ledger_optout: list[str] = field(default_factory=list)  # handles left off the public Ledger
 
 
 @dataclass

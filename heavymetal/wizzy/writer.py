@@ -220,7 +220,7 @@ async def write(
                 cost_usd=cost,
                 model=model,
             )
-    r, t, b = template(facts)
+    r, t, b = template_fn(facts)
     return Written(
         with_footer(r),
         t,
